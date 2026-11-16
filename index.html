@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สื่อการสอนจับคู่คำศัพท์ A-Level & Idioms</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #f0fdf4;
+        }
+        .card-shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-3px, 0, 0); }
+            20%, 80% { transform: translate3d(5px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-7px, 0, 0); }
+            40%, 60% { transform: translate3d(7px, 0, 0); }
+        }
+        /* คลาสสไตล์เมื่อเลือกผิด */
+        .card-wrong {
+            background-color: #fef2f2 !important;
+            border-color: #ef4444 !important;
+            color: #991b1b !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between">
+
+    <!-- Header / Navbar -->
+    <header class="bg-emerald-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white text-emerald-600 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xl shadow">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold leading-tight">A-Level MatchVocab</h1>
+                    <p class="text-xs text-emerald-100">สื่อจับคู่คลังศัพท์ A-Level, สำนวน & คำเชื่อมออกสอบ</p>
+                </div>
+            </div>
+
+            <!-- Tab Navigation Buttons -->
+            <nav class="flex bg-emerald-700/50 p-1 rounded-xl gap-1 text-sm font-medium">
+                <button id="nav-game" onclick="switchTab('game')" class="px-4 py-1.5 rounded-lg bg-white text-emerald-800 shadow transition-all">
+                    <i class="fa-solid fa-gamepad mr-1.5"></i>เกมจับคู่
+                </button>
+                <button id="nav-study" onclick="switchTab('study')" class="px-4 py-1.5 rounded-lg text-white hover:bg-emerald-600 transition-all">
+                    <i class="fa-solid fa-book-open mr-1.5"></i>คลังคำศัพท์
+                </button>
+                <button id="nav-manage" onclick="switchTab('manage')" class="px-4 py-1.5 rounded-lg text-white hover:bg-emerald-600 transition-all">
+                    <i class="fa-solid fa-pen-to-square mr-1.5"></i>จัดการคำศัพท์
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-4 py-6 flex-grow w-full">
+
+        <!-- TAB 1: GAME SECTION -->
+        <section id="tab-game" class="space-y-6">
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-emerald-100 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <label class="text-sm font-semibold text-slate-600">หมวดคำศัพท์:</label>
+                    <select id="category-select" onchange="initGame()" class="bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-lg text-sm px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="all">🌟 รวมคำศัพท์ สำนวน และคำเชื่อมทั้งหมด</option>
+                        <option value="alevel_core">🎯 A-Level Core Vocab (คลังศัพท์เข้มข้น)</option>
+                        <option value="academic">📚 Academic & News (วิชาการและบทความ)</option>
+                        <option value="verbs">⚡ Verbs & Actions (กริยาเน้นวิเคราะห์)</option>
+                        <option value="idioms">💡 Essential Idioms (สำนวนยอดฮิต)</option>
+                        <option value="contrast">⚖️ กลุ่มขัดแย้ง (Contrast)</option>
+                        <option value="purpose">🎯 บอกวัตถุประสงค์ (Purpose)</option>
+                        <option value="addition">➕ กลุ่มเสริมความ (Addition)</option>
+                        <option value="cause">🔍 กลุ่มบอกสาเหตุ (Cause / Reason)</option>
+                        <option value="result">➡️ กลุ่มบอกผลลัพธ์ (Result / Effect)</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center space-x-6 text-sm font-semibold">
+                    <div class="flex items-center space-x-2 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg border border-amber-200">
+                        <i class="fa-solid fa-star text-amber-500"></i>
+                        <span>คะแนน: <span id="score-display" class="font-bold text-base">0</span></span>
+                    </div>
+                    <div class="flex items-center space-x-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-200">
+                        <i class="fa-solid fa-stopwatch text-blue-500"></i>
+                        <span>เวลา: <span id="timer-display" class="font-bold text-base">00:00</span></span>
+                    </div>
+                    <div class="flex items-center space-x-2 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-lg border border-purple-200">
+                        <i class="fa-solid fa-check-double text-purple-500"></i>
+                        <span>จับคู่ได้: <span id="progress-display" class="font-bold text-base">0/0</span></span>
+                    </div>
+                    <button onclick="initGame()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-lg transition-colors flex items-center space-x-1 shadow-sm">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>เริ่มใหม่</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- English Words -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-emerald-100">
+                    <h3 class="text-center font-bold text-emerald-800 mb-4 pb-2 border-b border-slate-100 flex items-center justify-center space-x-2">
+                        <span>🇬🇧 คำศัพท์ / สำนวน / คำเชื่อม</span>
+                        <span class="text-xs font-normal text-slate-400">(คลิกฟังเสียงได้)</span>
+                    </h3>
+                    <div id="en-cards-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+                </div>
+
+                <!-- Thai Meanings -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-emerald-100">
+                    <h3 class="text-center font-bold text-emerald-800 mb-4 pb-2 border-b border-slate-100">
+                        <span>🇹🇭 ความหมาย / การใช้งาน</span>
+                    </h3>
+                    <div id="th-cards-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: STUDY SECTION -->
+        <section id="tab-study" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-emerald-100 space-y-4">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-book-bookmark text-emerald-600"></i>
+                        <span>คลังคำศัพท์ สำนวน และคำเชื่อม A-Level</span>
+                    </h2>
+                    <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                        <input type="text" id="search-input" oninput="renderStudyList()" placeholder="ค้นหาคำศัพท์หรือคำแปล..." class="w-full md:w-64 px-3 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <select id="study-category-filter" onchange="renderStudyList()" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <option value="all">ทุกหมวดหมู่</option>
+                            <option value="alevel_core">A-Level Core Vocab</option>
+                            <option value="academic">Academic & News</option>
+                            <option value="verbs">Verbs & Actions</option>
+                            <option value="idioms">Essential Idioms</option>
+                            <option value="contrast">กลุ่มขัดแย้ง (Contrast)</option>
+                            <option value="purpose">บอกวัตถุประสงค์ (Purpose)</option>
+                            <option value="addition">กลุ่มเสริมความ (Addition)</option>
+                            <option value="cause">กลุ่มบอกสาเหตุ (Cause)</option>
+                            <option value="result">กลุ่มบอกผลลัพธ์ (Result)</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="study-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2"></div>
+            </div>
+        </section>
+
+        <!-- TAB 3: MANAGE SECTION -->
+        <section id="tab-manage" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-emerald-100">
+                <h2 class="text-lg font-bold text-slate-800 mb-4">จัดการ/เพิ่มคำศัพท์และสำนวนเพิ่มเติม</h2>
+                <form id="add-vocab-form" onsubmit="addVocab(event)" class="space-y-4 max-w-md">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">คำศัพท์ / สำนวนภาษาอังกฤษ</label>
+                        <input type="text" id="add-en" required placeholder="เช่น Break a leg" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">คำแปลภาษาไทย</label>
+                        <input type="text" id="add-th" required placeholder="เช่น ขอให้โชคดี" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">หมวดหมู่</label>
+                        <select id="add-cat" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <option value="alevel_core">A-Level Core Vocab</option>
+                            <option value="academic">Academic & News</option>
+                            <option value="verbs">Verbs & Actions</option>
+                            <option value="idioms">Essential Idioms</option>
+                            <option value="contrast">กลุ่มขัดแย้ง (Contrast)</option>
+                            <option value="purpose">บอกวัตถุประสงค์ (Purpose)</option>
+                            <option value="addition">กลุ่มเสริมความ (Addition)</option>
+                            <option value="cause">กลุ่มบอกสาเหตุ (Cause)</option>
+                            <option value="result">กลุ่มบอกผลลัพธ์ (Result)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition">เพิ่มคำศัพท์</button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-emerald-100 py-4 text-center text-xs text-slate-500">
+        <p>© 2026 A-Level English MatchVocab - สื่อการเรียนรู้สำหรับเตรียมสอบ A-Level</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        const defaultVocab = [
+            // --- A-Level Core Vocab (10 คำ) ---
+            { id: 1, en: "Abundant", th: "อุดมสมบูรณ์, มากมาย", cat: "alevel_core" },
+            { id: 2, en: "Ambiguous", th: "คลุมเครือ, กำกวม", cat: "alevel_core" },
+            { id: 3, en: "Comprehensive", th: "ครอบคลุม, สมบูรณ์", cat: "alevel_core" },
+            { id: 4, en: "Crucial", th: "สำคัญยิ่ง, วิกฤต", cat: "alevel_core" },
+            { id: 5, en: "Deteriorate", th: "เลวร้ายลง, ทรุดโทรม", cat: "alevel_core" },
+            { id: 6, en: "Inevitable", th: "ซึ่งเลี่ยงไม่ได้", cat: "alevel_core" },
+            { id: 7, en: "Plausible", th: "น่าเชื่อถือ, เป็นไปได้", cat: "alevel_core" },
+            { id: 8, en: "Reluctant", th: "ลังเล, ไม่เต็มใจ", cat: "alevel_core" },
+            { id: 9, en: "Substantial", th: "มากมหาศาล, สำคัญ", cat: "alevel_core" },
+            { id: 10, en: "Vulnerable", th: "เปราะบาง, เสี่ยงถูกทำร้าย", cat: "alevel_core" },
+
+            // --- Academic & News Vocab (10 คำ) ---
+            { id: 11, en: "Advocate", th: "ผู้สนับสนุน, สนับสนุน", cat: "academic" },
+            { id: 12, en: "Controversy", th: "การโต้เถียง, ข้อขัดแย้ง", cat: "academic" },
+            { id: 13, en: "Diminish", th: "ลดลง, บรรเทา", cat: "academic" },
+            { id: 14, en: "Eradicate", th: "กำจัดจนหมดสิ้น", cat: "academic" },
+            { id: 15, en: "Implement", th: "นำไปปฏิบัติจริง", cat: "academic" },
+            { id: 16, en: "Legislation", th: "การออกกฎหมาย, กฎหมาย", cat: "academic" },
+            { id: 17, en: "Phenomenon", th: "ปรากฏการณ์", cat: "academic" },
+            { id: 18, en: "Prevalent", th: "แพร่หลาย, ที่พบได้ทั่วไป", cat: "academic" },
+            { id: 19, en: "Scarcity", th: "ความขาดแคลน", cat: "academic" },
+            { id: 20, en: "Unprecedented", th: "ไม่เคยปรากฏมาก่อน", cat: "academic" },
+
+            // --- Verbs & Actions (10 คำ) ---
+            { id: 21, en: "Accomplish", th: "ทำสำเร็จ, บรรลุผล", cat: "verbs" },
+            { id: 22, en: "Accumulate", th: "สะสม, เพิ่มพูน", cat: "verbs" },
+            { id: 23, en: "Compensate", th: "ชดเชย, ทดแทน", cat: "verbs" },
+            { id: 24, en: "Demonstrate", th: "สาธิต, แสดงให้เห็น", cat: "verbs" },
+            { id: 25, en: "Exaggerate", th: "พูดกล่าวเกินจริง", cat: "verbs" },
+            { id: 26, en: "Facilitate", th: "อำนวยความสะดวก", cat: "verbs" },
+            { id: 27, en: "Investigate", th: "สืบสวน, ตรวจสอบ", cat: "verbs" },
+            { id: 28, en: "Manipulate", th: "ชักดึง, ควบคุมหลอกลวง", cat: "verbs" },
+            { id: 29, en: "Negotiate", th: "เจรจาต่อรอง", cat: "verbs" },
+            { id: 30, en: "Substantiate", th: "พิสูจน์, ยืนยันด้วยหลักฐาน", cat: "verbs" },
+
+            // --- Essential Idioms (10 สำนวนออกสอบ) ---
+            { id: 31, en: "Bite the bullet", th: "อดทนเผชิญความยากลำบาก", cat: "idioms" },
+            { id: 32, en: "Break the ice", th: "ผ่อนคลายความตึงเครียดเริ่มต้น", cat: "idioms" },
+            { id: 33, en: "Burn the midnight oil", th: "อ่านหนังสือหรือทำงานจนดึกดื่น", cat: "idioms" },
+            { id: 34, en: "Cut corners", th: "ทำแบบมักง่ายเพื่อประหยัดเงิน/เวลา", cat: "idioms" },
+            { id: 35, en: "Hit the nail on the head", th: "พูดหรือเดา ได้ถูกต้องตรงประเด็น", cat: "idioms" },
+            { id: 36, en: "Once in a blue moon", th: "นานๆ ทีเกิดครั้ง (แทบจะไม่)", cat: "idioms" },
+            { id: 37, en: "Out of the blue", th: "เกิดขึ้นอย่างกะทันหันไม่ทันตั้งตัว", cat: "idioms" },
+            { id: 38, en: "See eye to eye", th: "มีความเห็นตรงกัน, เห็นพ้องต้องกัน", cat: "idioms" },
+            { id: 39, en: "Spill the beans", th: "หลุดปากบอกความลับ", cat: "idioms" },
+            { id: 40, en: "Under the weather", th: "รู้สึกไม่สบาย, ป่วยไข้เล็กน้อย", cat: "idioms" },
+
+            // --- กลุ่มขัดแย้ง (Contrast) ---
+            { id: 41, en: "In spite of", th: "ทั้งๆ ที่, แม้ว่า (+ N. / V.ing)", cat: "contrast" },
+            { id: 42, en: "Notwithstanding", th: "ทั้งๆ ที่, แม้ว่า (+ N. / V.ing)", cat: "contrast" },
+            { id: 43, en: "Though", th: "แม้ว่า (+ ประโยค S + V)", cat: "contrast" },
+            { id: 44, en: "Although", th: "ถึงแม้ว่า (+ ประโยค S + V)", cat: "contrast" },
+            { id: 45, en: "Even though", th: "ทั้งๆ ที่, แม้ว่า (+ ประโยค S + V)", cat: "contrast" },
+            { id: 46, en: "Even if", th: "ต่อให้, แม้ว่า (+ ประโยค S + V)", cat: "contrast" },
+            { id: 47, en: "But", th: "แต่ (เชื่อมประโยคขัดแย้ง)", cat: "contrast" },
+            { id: 48, en: "Yet", th: "แต่ทว่า, กระนั้นก็ดี", cat: "contrast" },
+            { id: 49, en: "Still", th: "ถึงอย่างนั้น, ก็ยังคง", cat: "contrast" },
+            { id: 50, en: "However", th: "อย่างไรก็ตาม (ขึ้นประโยคใหม่)", cat: "contrast" },
+            { id: 51, en: "Nevertheless", th: "อย่างไรก็ตาม, กระนั้นก็ตาม", cat: "contrast" },
+            { id: 52, en: "Nonetheless", th: "ถึงกระนั้นก็ตาม, อย่างไรก็ตาม", cat: "contrast" },
+            { id: 53, en: "On the other hand", th: "ในทางกลับกัน, อีกด้านหนึ่ง", cat: "contrast" },
+            { id: 54, en: "On the contrary", th: "ในทางตรงกันข้าม", cat: "contrast" },
+            { id: 55, en: "In contrast", th: "ตรงกันข้ามกับ", cat: "contrast" },
+
+            // --- บอกวัตถุประสงค์ (Purpose) ---
+            { id: 56, en: "To", th: "เพื่อที่จะ (+ V.inf)", cat: "purpose" },
+            { id: 57, en: "In order to", th: "เพื่อที่จะ, เพื่อจุดประสงค์ (+ V.inf)", cat: "purpose" },
+            { id: 58, en: "So as to", th: "เพื่อที่จะ (+ V.inf)", cat: "purpose" },
+            { id: 59, en: "So that", th: "เพื่อที่ว่า (+ S + can/will + V.inf)", cat: "purpose" },
+            { id: 60, en: "In order that", th: "เพื่อที่ว่า (+ S + can/will + V.inf)", cat: "purpose" },
+
+            // --- กลุ่มเสริมความ (Addition) ---
+            { id: 61, en: "Besides", th: "นอกจากนี้, ยิ่งไปกว่านั้น", cat: "addition" },
+            { id: 62, en: "Aside from", th: "นอกเหนือจาก (+ N. / V.ing)", cat: "addition" },
+            { id: 63, en: "Apart from", th: "นอกจาก (+ N. / V.ing)", cat: "addition" },
+            { id: 64, en: "In addition to", th: "นอกเหนือจาก, เพิ่มเติมจาก (+ N. / V.ing)", cat: "addition" },
+            { id: 65, en: "What’s more", th: "ยิ่งไปกว่านั้น, ที่สำคัญกว่านั้น", cat: "addition" },
+            { id: 66, en: "Moreover", th: "ยิ่งไปกว่านั้น, นอกจากนี้", cat: "addition" },
+            { id: 67, en: "Furthermore", th: "ยิ่งไปกว่านั้น, เพิ่มเติมคือ", cat: "addition" },
+            { id: 68, en: "In addition", th: "นอกจากนี้ (วางหน้าประโยค)", cat: "addition" },
+
+            // --- กลุ่มบอกสาเหตุ (Cause) ---
+            { id: 69, en: "Because", th: "เพราะว่า (+ ประโยค S + V)", cat: "cause" },
+            { id: 70, en: "Since", th: "เนื่องจาก, เพราะว่า (+ ประโยค S + V)", cat: "cause" },
+            { id: 71, en: "For", th: "เพราะว่า (เชื่อมประโยคหลัก)", cat: "cause" },
+            { id: 72, en: "As", th: "เนื่องจาก, เพราะ (+ ประโยค S + V)", cat: "cause" },
+            { id: 73, en: "Seeing that", th: "เนื่องจากเห็นว่า (+ ประโยค S + V)", cat: "cause" },
+            { id: 74, en: "Now that", th: "เนื่องจากตอนนี้ (+ ประโยค S + V)", cat: "cause" },
+            { id: 75, en: "Due to", th: "เนื่องจาก (+ N. / V.ing)", cat: "cause" },
+            { id: 76, en: "Thanks to", th: "ต้องขอบคุณ, เนื่องจาก (+ N. / V.ing)", cat: "cause" },
+            { id: 77, en: "Owing to", th: "เนื่องจาก, เพราะ (+ N. / V.ing)", cat: "cause" },
+            { id: 78, en: "Because of", th: "เพราะว่า, เนื่องจาก (+ N. / V.ing)", cat: "cause" },
+            { id: 79, en: "On account of", th: "เนื่องจาก (+ N. / V.ing)", cat: "cause" },
+            { id: 80, en: "As a result of", th: "อันเป็นผลมาจาก (+ N. / V.ing)", cat: "cause" },
+            { id: 81, en: "On the grounds of", th: "ด้วยเหตุผลที่ว่า (+ N. / V.ing)", cat: "cause" },
+            { id: 82, en: "As a consequence of", th: "ผลสืบเนื่องมาจาก (+ N. / V.ing)", cat: "cause" },
+            { id: 83, en: "Resulting from", th: "ซึ่งเป็นผลมาจาก (+ N. / V.ing)", cat: "cause" },
+
+            // --- กลุ่มบอกผลลัพธ์ (Result) ---
+            { id: 84, en: "So", th: "ดังนั้น (เชื่อมประโยคผลลัพธ์)", cat: "result" },
+            { id: 85, en: "Therefore", th: "ดังนั้น, เพราะฉะนั้น", cat: "result" },
+            { id: 86, en: "Thereby", th: "ดังนั้น, โดยวิธีนั้น (+ V.ing)", cat: "result" },
+            { id: 87, en: "Accordingly", th: "ดังนั้น, ตามลำดับ, สอดคล้องกัน", cat: "result" },
+            { id: 88, en: "Consequently", th: "ผลที่ตามมาคือ, ดังนั้น", cat: "result" },
+            { id: 89, en: "Hence", th: "ด้วยเหตุนี้, ดังนั้น", cat: "result" },
+            { id: 90, en: "Thus", th: "ดังนั้น, ด้วยประการฉะนี้", cat: "result" }
+        ];
+
+        // ชุดสีและสัญลักษณ์สุ่มสำหรับแสดงเมื่อจับคู่สำเร็จ
+        const matchThemes = [
+            { bg: "bg-blue-100", border: "border-blue-500", text: "text-blue-900", badge: "bg-blue-500 text-white", icon: "fa-star" },
+            { id: "purple", bg: "bg-purple-100", border: "border-purple-500", text: "text-purple-900", badge: "bg-purple-500 text-white", icon: "fa-heart" },
+            { bg: "bg-amber-100", border: "border-amber-500", text: "text-amber-900", badge: "bg-amber-500 text-white", icon: "fa-bolt" },
+            { bg: "bg-pink-100", border: "border-pink-500", text: "text-pink-900", badge: "bg-pink-500 text-white", icon: "fa-gem" },
+            { bg: "bg-teal-100", border: "border-teal-500", text: "text-teal-900", badge: "bg-teal-500 text-white", icon: "fa-clover" },
+            { bg: "bg-indigo-100", border: "border-indigo-500", text: "text-indigo-900", badge: "bg-indigo-500 text-white", icon: "fa-crown" }
+        ];
+
+        let vocabList = [...defaultVocab];
+        let selectedEn = null;
+        let selectedTh = null;
+        let score = 0;
+        let matchedPairs = 0;
+        let totalPairs = 0;
+        let timer = null;
+        let seconds = 0;
+        let isProcessing = false;
+
+        function switchTab(tab) {
+            document.getElementById('tab-game').classList.add('hidden');
+            document.getElementById('tab-study').classList.add('hidden');
+            document.getElementById('tab-manage').classList.add('hidden');
+            
+            document.getElementById('nav-game').className = "px-4 py-1.5 rounded-lg text-white hover:bg-emerald-600 transition-all";
+            document.getElementById('nav-study').className = "px-4 py-1.5 rounded-lg text-white hover:bg-emerald-600 transition-all";
+            document.getElementById('nav-manage').className = "px-4 py-1.5 rounded-lg text-white hover:bg-emerald-600 transition-all";
+
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            document.getElementById(`nav-${tab}`).className = "px-4 py-1.5 rounded-lg bg-white text-emerald-800 shadow transition-all";
+
+            if (tab === 'game') initGame();
+            if (tab === 'study') renderStudyList();
+        }
+
+        function playSound(text) {
+            if ('speechSynthesis' in window) {
+                try {
+                    window.speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'en-US';
+                    window.speechSynthesis.speak(utterance);
+                } catch(e) { console.log('Speech error:', e); }
+            }
+        }
+
+        function initGame() {
+            clearInterval(timer);
+            seconds = 0;
+            score = 0;
+            matchedPairs = 0;
+            selectedEn = null;
+            selectedTh = null;
+            isProcessing = false;
+
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('timer-display').innerText = "00:00";
+
+            const cat = document.getElementById('category-select').value;
+            let currentList = cat === 'all' ? [...vocabList] : vocabList.filter(v => v.cat === cat);
+            
+            // สุ่มนำมา 6 คำต่อรอบ
+            totalPairs = Math.min(currentList.length, 6);
+            currentList = currentList.sort(() => Math.random() - 0.5).slice(0, totalPairs);
+
+            document.getElementById('progress-display').innerText = `0/${totalPairs}`;
+
+            const enContainer = document.getElementById('en-cards-container');
+            const thContainer = document.getElementById('th-cards-container');
+            enContainer.innerHTML = '';
+            thContainer.innerHTML = '';
+
+            const enShuffled = [...currentList].sort(() => Math.random() - 0.5);
+            const thShuffled = [...currentList].sort(() => Math.random() - 0.5);
+
+            enShuffled.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = "w-full p-4 text-left border rounded-xl hover:bg-emerald-50 transition flex justify-between items-center bg-white font-semibold shadow-sm text-slate-800";
+                btn.innerHTML = `
+                    <span class="text-emerald-900 flex items-center gap-2">
+                        <span class="match-badge hidden text-xs w-6 h-6 rounded-full flex items-center justify-center"></span>
+                        <span>${item.en}</span>
+                    </span>
+                    <i class="fa-solid fa-volume-high text-slate-300 hover:text-emerald-600"></i>
+                `;
+                btn.onclick = (e) => {
+                    if (e.target.classList.contains('fa-volume-high')) {
+                        playSound(item.en);
+                        return;
+                    }
+                    playSound(item.en);
+                    selectCard(btn, 'en', item.id);
+                };
+                enContainer.appendChild(btn);
+            });
+
+            thShuffled.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = "w-full p-4 text-left border rounded-xl hover:bg-emerald-50 transition bg-white font-semibold shadow-sm text-slate-700 flex items-center justify-between";
+                btn.innerHTML = `
+                    <span>${item.th}</span>
+                    <span class="match-badge hidden text-xs w-6 h-6 rounded-full flex items-center justify-center"></span>
+                `;
+                btn.onclick = () => selectCard(btn, 'th', item.id);
+                thContainer.appendChild(btn);
+            });
+
+            timer = setInterval(() => {
+                seconds++;
+                const mins = String(Math.floor(seconds / 60)).padStart(2, '0');
+                const secs = String(seconds % 60).padStart(2, '0');
+                document.getElementById('timer-display').innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function selectCard(el, type, id) {
+            if (isProcessing) return;
+
+            if (type === 'en') {
+                if (selectedEn) selectedEn.el.classList.remove('border-emerald-500', 'bg-emerald-100', 'ring-2', 'ring-emerald-400');
+                selectedEn = { el, id };
+                el.classList.add('border-emerald-500', 'bg-emerald-100', 'ring-2', 'ring-emerald-400');
+            } else {
+                if (selectedTh) selectedTh.el.classList.remove('border-emerald-500', 'bg-emerald-100', 'ring-2', 'ring-emerald-400');
+                selectedTh = { el, id };
+                el.classList.add('border-emerald-500', 'bg-emerald-100', 'ring-2', 'ring-emerald-400');
+            }
+
+            if (selectedEn && selectedTh) {
+                isProcessing = true;
+
+                if (selectedEn.id === selectedTh.id) {
+                    // --- ถูกต้อง (MATCH) ---
+                    const theme = matchThemes[matchedPairs % matchThemes.length];
+
+                    [selectedEn.el, selectedTh.el].forEach(card => {
+                        card.classList.remove('border-emerald-500', 'bg-emerald-100', 'ring-2', 'ring-emerald-400', 'hover:bg-emerald-50');
+                        card.classList.add(theme.bg, theme.border, theme.text, 'pointer-events-none', 'border-2');
+                        
+                        const badge = card.querySelector('.match-badge');
+                        if (badge) {
+                            badge.className = `match-badge text-xs w-6 h-6 rounded-full flex items-center justify-center ${theme.badge}`;
+                            badge.innerHTML = `<i class="fa-solid ${theme.icon}"></i>`;
+                        }
+                    });
+
+                    score += 10;
+                    matchedPairs++;
+                    document.getElementById('score-display').innerText = score;
+                    document.getElementById('progress-display').innerText = `${matchedPairs}/${totalPairs}`;
+
+                    selectedEn = null;
+                    selectedTh = null;
+                    isProcessing = false;
+
+                    if (matchedPairs === totalPairs) {
+                        clearInterval(timer);
+                        setTimeout(() => {
+                            if (typeof confetti === 'function') confetti();
+                            else alert('ยินดีด้วย! คุณจับคู่ครบทั้งหมดแล้ว 🎉');
+                        }, 300);
+                    }
+
+                } else {
+                    // --- ผิด (WRONG) ---
+                    const elEn = selectedEn.el;
+                    const elTh = selectedTh.el;
+
+                    [elEn, elTh].forEach(card => {
+                        card.classList.remove('border-emerald-500', 'bg-emerald-100', 'ring-2', 'ring-emerald-400');
+                        card.classList.add('card-wrong', 'card-shake');
+                    });
+
+                    setTimeout(() => {
+                        [elEn, elTh].forEach(card => {
+                            card.classList.remove('card-wrong', 'card-shake');
+                        });
+                        selectedEn = null;
+                        selectedTh = null;
+                        isProcessing = false;
+                    }, 600);
+                }
+            }
+        }
+
+        function getCategoryBadge(cat) {
+            const badges = {
+                alevel_core: `<span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-semibold">Core Vocab</span>`,
+                academic: `<span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-semibold">Academic</span>`,
+                verbs: `<span class="text-[10px] bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full font-semibold">Verbs</span>`,
+                idioms: `<span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold">Idiom</span>`,
+                contrast: `<span class="text-[10px] bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full font-semibold">ขัดแย้ง</span>`,
+                purpose: `<span class="text-[10px] bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded-full font-semibold">วัตถุประสงค์</span>`,
+                addition: `<span class="text-[10px] bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full font-semibold">เสริมความ</span>`,
+                cause: `<span class="text-[10px] bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full font-semibold">สาเหตุ</span>`,
+                result: `<span class="text-[10px] bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full font-semibold">ผลลัพธ์</span>`
+            };
+            return badges[cat] || `<span class="text-[10px] bg-slate-100 text-slate-800 px-2 py-0.5 rounded-full font-semibold">Vocab</span>`;
+        }
+
+        function renderStudyList() {
+            const search = document.getElementById('search-input').value.toLowerCase();
+            const cat = document.getElementById('study-category-filter').value;
+            const grid = document.getElementById('study-grid');
+            grid.innerHTML = '';
+
+            const filtered = vocabList.filter(item => {
+                const matchCat = cat === 'all' || item.cat === cat;
+                const matchText = item.en.toLowerCase().includes(search) || item.th.toLowerCase().includes(search);
+                return matchCat && matchText;
+            });
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "p-4 bg-emerald-50/50 border border-emerald-100 rounded-xl flex justify-between items-center shadow-sm hover:shadow transition";
+                
+                const tag = getCategoryBadge(item.cat);
+
+                card.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-bold text-slate-800 text-base">${item.en}</span>
+                            ${tag}
+                        </div>
+                        <div class="text-slate-600 text-sm">${item.th}</div>
+                    </div>
+                    <button onclick="playSound('${item.en.replace(/'/g, "\\'")}')" class="p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition shrink-0">
+                        <i class="fa-solid fa-volume-high text-lg"></i>
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function addVocab(e) {
+            e.preventDefault();
+            const en = document.getElementById('add-en').value.trim();
+            const th = document.getElementById('add-th').value.trim();
+            const cat = document.getElementById('add-cat').value;
+
+            if(!en || !th) return;
+
+            vocabList.push({ id: Date.now(), en, th, cat });
+            alert('เพิ่มคำศัพท์/สำนวนเรียบร้อยแล้ว!');
+            document.getElementById('add-vocab-form').reset();
+        }
+
+        window.onload = () => {
+            initGame();
+        };
+    </script>
+</body>
+</html>
